@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:hz="http://www.hazelcast.com/schema/spring"
+       xmlns:mongo="http://www.springframework.org/schema/data/mongo"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd http://www.hazelcast.com/schema/spring http://www.hazelcast.com/schema/spring/hazelcast-spring-2.5.xsd http://www.springframework.org/schema/data/mongo http://www.springframework.org/schema/data/mongo/spring-mongo.xsd">
+
+    <mongo:mongo host="127.0.0.1"/>
+
+
+    <bean id="mongoTemplate" class="org.springframework.data.mongodb.core.MongoTemplate">
+        <constructor-arg ref="mongo"/>
+        <constructor-arg name="databaseName" value="hazel-test-poc"/>
+        <property name="writeConcern" ref="writeConcern"/>
+    </bean>
+
+    <bean id="writeConcern" class="com.mongodb.WriteConcern">
+        <constructor-arg name="w" value="1"/>
+        <constructor-arg name="wtimeout" value="0"/>
+        <constructor-arg name="fsync" value="true"/>
+        <constructor-arg name="j" value="true"/>
+    </bean>
+
+
+    <hz:hazelcast id="instance">
+        <hz:config>
+            <hz:properties>
+                <hz:property name="hazelcast.logging.type">slf4j</hz:property>
+            </hz:properties>
+            <hz:map name="map"
+                    backup-count="0"
+                    max-size="1000"
+                    eviction-policy="LRU"
+                    eviction-percentage="25"
+                    time-to-live-seconds="5">
+                <hz:map-store enabled="true" implementation="mongoMapStore" write-delay-seconds="0"/>
+            </hz:map>
+        </hz:config>
+    </hz:hazelcast>
+
+
+    <bean id="mongoMapStore" class="com.hazelcast.spring.mongodb.MongoMapStore">
+        <property name="mongoTemplate" ref="mongoTemplate"/>
+    </bean>
+
+</beans>
