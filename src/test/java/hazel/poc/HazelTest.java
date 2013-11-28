@@ -1,7 +1,5 @@
 package hazel.poc;
 
-import com.hazelcast.core.EntryEvent;
-import com.hazelcast.core.EntryListener;
 import com.hazelcast.core.HazelcastInstance;
 import com.hazelcast.core.IMap;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,38 +31,12 @@ public class HazelTest extends AbstractTestNGSpringContextTests {
     @Test
     public void simpleTest() throws InterruptedException {
         final IMap<Long, String> simpleMap = instance.getMap("map");
-
-        simpleMap.addEntryListener(new EntryListener<Long, String>() {
-
-            private int i = 0;
-
-            @Override
-            public void entryAdded(EntryEvent<Long, String> event) {
-
-            }
-
-            @Override
-            public void entryRemoved(EntryEvent<Long, String> event) {
-
-            }
-
-            @Override
-            public void entryUpdated(EntryEvent<Long, String> event) {
-
-            }
-
-            @Override
-            public void entryEvicted(EntryEvent<Long, String> event) {
-                i++;
-                System.out.println("Evicted - " + i + " Counter - " + counter);
-            }
-        }, false);
-        System.out.println("Lock elements");
         for (long i = 0; i < COUNT; i++) {
             simpleMap.put(i, dataPrefix + i);
             counter++;
             if (i % 20000 == 0) {
                 simpleMap.lock(i);
+                System.out.println("Lock element " + i);
             }
 
             if (i % 40000 == 0) {
